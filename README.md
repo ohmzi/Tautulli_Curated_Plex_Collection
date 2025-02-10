@@ -113,4 +113,22 @@ To have Tautulli automatically call your script whenever someone finishes watchi
 10. Verify:
     Check Tautulli’s logs to see if the script ran successfully and see any output (e.g., “Found in Plex already,” “Added to Radarr,” etc.).
 
-Now each time Tautulli detects a user has fully watched a movie, it will call your script with the watched movie’s title. This allows automated collection updates or additional logic whenever a viewing finishes.
+
+---
+
+
+**Now each time Tautulli detects a user has fully watched a movie, it will call your script with the watched movie’s title. This allows automated collection updates or additional logic whenever a viewing finishes.**
+
+**Enjoy using this script! If it enhances your movie nights, please share your setup, tweaks, or any improvements with the community. Encounter any issues or have ideas for enhancements? Feel free to open an issue or submit a pull request.**
+
+
+---
+
+
+## License
+
+This project is provided “as is” without warranty of any kind. You are free to use, modify, and distribute this code as per the [MIT License](https://opensource.org/licenses/MIT).
+
+---
+
+
