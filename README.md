@@ -94,7 +94,7 @@ tautulli-recommendations:latest
 ```
 3. Proceed to configure ports, volumes, and environment variables as needed, then Deploy the container.
 
-###5. Set Up Tautulli Automation
+### 5. Set Up Tautulli Automation
 To have Tautulli automatically call your script whenever someone finishes watching a movie (or meets another trigger):
 
 1. Open Tautulli → Settings → Notification Agents.
