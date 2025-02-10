@@ -80,7 +80,7 @@ you to run the recommendation script **inside** the Tautulli container.
 
 ### 3. Build the Docker Image
 
-From the directory containing your `Dockerfile`: 
+From the directory containing your `Dockerfile`, run the command in terminal: 
 ```bash
 docker build -t tautulli-recommendations .
 ```
