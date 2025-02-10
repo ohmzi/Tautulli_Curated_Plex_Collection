@@ -1,0 +1,20 @@
+plex:
+  url: "http://localhost:32400"
+  token: "PLEX_TOKEN"
+
+openai:
+  api_key: "sk-proj-XXXXXXXXXXXXXXXXXXX"
+
+radarr:
+  url: "http://localhost:7878"
+  api_key: "RADARR_API_KEY"
+  root_folder: "/folder/to/you/Movies"
+  tag_name: "RADARR_TAG_NAME"
+
+tmdb:
+  api_key: "TMDB_API_KEY"
+
+files:
+  points_file: "recommendation_points.json"
+  tmdb_cache_file: "tmdb_cache.json"
+
