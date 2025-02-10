@@ -5,7 +5,7 @@ import json
 import requests
 import time
 import os
-import yaml  # <-- You need PyYAML installed: pip install pyyaml
+import yaml  
 
 from plexapi.server import PlexServer
 from openai import OpenAI
