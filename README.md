@@ -1,5 +1,7 @@
 # Plex Movie Recommendations Script Triggered from Tautulli within Docker
 
+![alt text](https://github.com/ohmzi/Tautulli_Curated_Plex_Collection/blob/main/sample_run_pictures/plex_mobile_app_screenshot.jpg?raw=true)
+
 **Table of Contents**  
 - [Overview](#overview)  
 - [Features](#features)  
@@ -132,5 +134,10 @@ To have Tautulli automatically call your script whenever someone finishes watchi
 This project is provided “as is” without warranty of any kind. You are free to use, modify, and distribute this code as per the [MIT License](https://opensource.org/licenses/MIT).
 
 ---
+
+Sample Run in Tautulli:
+![alt text](https://github.com/ohmzi/Tautulli_Curated_Plex_Collection/blob/main/sample_run_pictures/tautulli_log_screenshot_1.jpg?raw=true)
+![alt text](https://github.com/ohmzi/Tautulli_Curated_Plex_Collection/blob/main/sample_run_pictures/tautulli_log_screenshot_2.jpg?raw=true)
+![alt text](https://github.com/ohmzi/Tautulli_Curated_Plex_Collection/blob/main/sample_run_pictures/tautulli_log_screenshot_3.jpg?raw=true)
 
 
