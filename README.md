@@ -121,7 +121,7 @@ To have Tautulli automatically call your script whenever someone finishes watchi
 
 **Tip: Add the collection to your Home screen and position it at the very top—right beneath the Continue Watching list.**
 
-**Enjoy using this script! If it enhances your movie nights. If you Encounter any issues or have ideas for enhancements? Feel free to open an issue or submit a pull request.**
+**Enjoy using this script! I hope it enhances your movie selection. If you Encounter any issues or have ideas for enhancements? Feel free to open an issue or submit a pull request.**
 
 
 ---
