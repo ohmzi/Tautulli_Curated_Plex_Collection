@@ -117,9 +117,11 @@ To have Tautulli automatically call your script whenever someone finishes watchi
 ---
 
 
-**Now each time Tautulli detects a user has fully watched a movie, it will call your script with the watched movie’s title. This allows automated collection updates or additional logic whenever a viewing finishes.**
+**Now Whenever Tautulli detects that a user has finished watching a movie, it will trigger your script with the movie’s title. With each run, your collection becomes more finely curated.**
 
-**Enjoy using this script! If it enhances your movie nights, please share your setup, tweaks, or any improvements with the community. Encounter any issues or have ideas for enhancements? Feel free to open an issue or submit a pull request.**
+**Tip: Add the collection to your Home screen and position it at the very top—right beneath the Continue Watching list.**
+
+**Enjoy using this script! If it enhances your movie nights. If you Encounter any issues or have ideas for enhancements? Feel free to open an issue or submit a pull request.**
 
 
 ---
