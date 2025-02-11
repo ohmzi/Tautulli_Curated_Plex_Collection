@@ -477,7 +477,7 @@ def main(movie_name: str):
 
     if OPENAI_API_KEY:
         print("OpenAI API key found. Attempting GPT for recommendations...")
-        gpt_recs = get_gpt_recommendations(base_movie_name)
+        gpt_recs = get_gpt_recommendations(movie_name)
         if gpt_recs:
             recs = gpt_recs
         else:
