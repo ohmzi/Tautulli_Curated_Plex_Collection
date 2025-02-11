@@ -17,10 +17,10 @@
 
 This script automates the process of:
 
-1. **Generating movie recommendations** via **OpenAI** (using GPT).
+1. **Generating movie recommendations** via **OpenAI** or fallback **TMDB** .
 2. **Checking Plex** to see if recommended movies already exist.
-3. **Adding missing movies to Radarr** for automatic downloading.
-4. **Refreshing a custom Plex collection** (“Inspired by your Immaculate Taste”) using a **points system** to keep it relevant.
+3. **Adding missing movies to Radarr** for automate downloading.
+4. **Refreshing a custom Plex collection** (“Inspired by your Immaculate Taste”) using a **points system** to keep it relevant and cycle them out as they get old.
 
 ---
 
