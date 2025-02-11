@@ -5,10 +5,10 @@ import json
 import requests
 import time
 import os
-import yaml  
+import yaml
 
 from plexapi.server import PlexServer
-from openai import OpenAI
+from openai import OpenAI, AuthenticationError, OpenAIError
 from arrapi import RadarrAPI, exceptions as arr_exceptions
 
 # -------------- Function to Load YAML Configuration --------------
@@ -139,7 +139,11 @@ def get_tmdb_rating_cached(tmdb_id):
 
 # ----------------- GPT Recommendation -----------------
 
-def get_recommendations(movie_name: str) -> list:
+def get_gpt_recommendations(movie_name: str) -> list:
+    """
+    Use OpenAI GPT to generate recommendations for the given movie name.
+    Falls back to None if there's an auth failure or any critical error.
+    """
     prompt = f"""Return a list of 50 movies for fans of "{movie_name}" in the following categories:
 Direct sequels/prequels,
 Movies by the same director or featuring the lead actor,
@@ -149,8 +153,9 @@ Five movies from different franchises,
 Two indie movies.
 Ensure all movies are released.
 Format:
-Provide the list as a single comma-separated string in the format "Title (Year), Title (Year), ..." , no bulleting or indexing each name serperately.
+Provide the list as a single comma-separated string in the format "Title (Year), Title (Year), ..." , no bulleting or indexing each name seperately.
 Example Output: "The Dark Knight (2008), Inception (2010), ..." """
+
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -164,8 +169,50 @@ Example Output: "The Dark Knight (2008), Inception (2010), ..." """
         raw = response.choices[0].message.content.strip()
         recs = [title.strip() for title in re.split(r',|\n', raw) if title.strip()]
         return recs
+
+    except AuthenticationError as e:
+        print("OpenAI API Key authentication failure. Will fallback to TMDb.")
+        return None
+
+    except OpenAIError as e:
+        # Catch other OpenAI-related errors
+        print(f"OpenAI error: {e}")
+        return None
+
     except Exception as e:
-        print(f"API Error: {e}")
+        # Generic fallback
+        print(f"Unknown error calling GPT: {e}")
+        return None
+
+# ----------------- TMDb Fallback Recommendations -----------------
+
+def get_tmdb_recommendations(movie_name: str) -> list:
+    """
+    If no OpenAI API key is provided, use TMDb's /movie/{id}/recommendations
+    endpoint to get a list of recommended movies in the format "Title (Year)".
+    """
+    tmdb_id = get_tmdb_id_cached(movie_name)
+    if not tmdb_id:
+        print(f"Could not find TMDb ID for fallback recommendations of '{movie_name}'")
+        return []
+
+    url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/recommendations?api_key={TMDB_API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+
+        results = data.get("results", [])
+        rec_list = []
+        for item in results:
+            title = item.get("title") or item.get("original_title", "Unknown Title")
+            release_date = item.get("release_date", "")
+            year = release_date[:4] if release_date else "0000"
+            rec_list.append(f"{title} ({year})")
+
+        return rec_list
+    except Exception as e:
+        print(f"Error fetching TMDb recommendations for id {tmdb_id}: {e}")
         return []
 
 # ----------------- Plex & Radarr Helpers -----------------
@@ -223,6 +270,7 @@ def add_to_radarr(title: str):
 
     movie = search_radarr_movie(tmdb_id)
     if movie:
+        # If the movie is already in Radarr, ensure it's monitored
         if not movie.monitored:
             try:
                 movie.edit(monitored=True)
@@ -384,7 +432,7 @@ def main(movie_name: str):
     1) Load YAML config and set up global variables
     2) Initialize clients (Plex, OpenAI, Radarr) from config
     3) Load TMDb cache
-    4) GPT recommendations
+    4) Generate recommendations (GPT or fallback)
     5) Add to Radarr if not in Plex
     6) Refresh collection
     7) Save TMDb cache
@@ -400,7 +448,7 @@ def main(movie_name: str):
 
     PLEX_URL = config["plex"]["url"]
     PLEX_TOKEN = config["plex"]["token"]
-    OPENAI_API_KEY = config["openai"]["api_key"]
+    OPENAI_API_KEY = config["openai"].get("api_key")  # Might be None or empty
     RADARR_URL = config["radarr"]["url"]
     RADARR_API_KEY = config["radarr"]["api_key"]
     RADARR_ROOT_FOLDER = config["radarr"]["root_folder"]
@@ -413,20 +461,40 @@ def main(movie_name: str):
 
     # Re-initialize the clients with new config
     plex = PlexServer(PLEX_URL, PLEX_TOKEN)
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    # Only init OpenAI client if we have an API key
+    if OPENAI_API_KEY:
+        client = OpenAI(api_key=OPENAI_API_KEY)
     radarr = RadarrAPI(RADARR_URL, RADARR_API_KEY)
 
     # Step 3) Load TMDb cache
     load_tmdb_cache()
 
-    # Step 4) GPT
-    recs = get_recommendations(movie_name)
+    # Step 4) Generate recommendations
+    # Strip year from the user's input if present, so TMDb won't fail to find it
+    base_movie_name = strip_year_if_present(movie_name)
+
+    recs = None
+
+    if OPENAI_API_KEY:
+        print("OpenAI API key found. Attempting GPT for recommendations...")
+        gpt_recs = get_gpt_recommendations(base_movie_name)
+        if gpt_recs:
+            recs = gpt_recs
+        else:
+            print("GPT recommendation failed or was empty. Falling back to TMDb...")
+            recs = get_tmdb_recommendations(base_movie_name)
+    else:
+        print("No OpenAI API key provided. Using TMDb fallback for recommendations...")
+        recs = get_tmdb_recommendations(base_movie_name)
+
+    # If we still have no recs, exit
     if not recs:
         print("No recommendations generated.")
         return
 
-    # Step 5) Add to Radarr
-    print("\nProcessing recommendations from OpenAI:")
+
+    # Step 5) Add to Radarr if not in Plex
+    print("\nProcessing recommendations:")
     for title in recs:
         found_in_plex = find_plex_movie(title)
         if found_in_plex:
@@ -441,9 +509,23 @@ def main(movie_name: str):
     # Step 7) Save the TMDb cache
     save_tmdb_cache()
 
+def strip_year_if_present(title_str: str) -> str:
+    """
+    If title is in the format 'Inception (2010)' or 'Titanic [1997]',
+    strip out the year portion for a better TMDb search query.
+    Returns the base title without parentheses or brackets.
+    """
+    match = re.match(r"(.*?)(\s*\(\d{4}\)|\s*\[\d{4}\])$", title_str)
+    if match:
+        base_title = match.group(1).strip()
+        return base_title
+    return title_str
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         main(sys.argv[1])
     else:
         print("Usage: python script.py 'Movie Title'")
+
 
