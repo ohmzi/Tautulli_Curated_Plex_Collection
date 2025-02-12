@@ -70,7 +70,7 @@ you to run the recommendation script **inside** the Tautulli container.
 
 ### 1. Prerequisites
 
-- **Docker, Portainer, Plex, Tautulli, and Radarr** must already be installed and working.
+- **Docker, Plex, Tautulli, and Radarr** must already be installed and working.
 - You’ll need valid credentials for each service (tokens, API keys, etc.).
 
 ### 2. Prepare Your `config.yaml`
