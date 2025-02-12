@@ -54,7 +54,7 @@ This script automates the process of:
 
 ## Requirements
 
-1. **Docker & Portainer**  
+1. **Docker**  
 2. **Tautulli**
 3. **Plex**
 4. **Radarr**
