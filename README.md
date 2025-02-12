@@ -85,14 +85,43 @@ From the directory containing your `Dockerfile`, run the command in terminal:
 docker build -t tautulli-recommendations .
 ```
 ### 4. Redeploy Tautulli with the Custom Image
-If you removed the old container, you’ll now create a new one:
+If you removed the old container, you’ll now create a new one.
+Follow the steps based on whether you're using Portainer or Docker Compose.
 
+- **Option 1: Using Portainer**
+  
 1. In Portainer, choose Add Container (if you removed the old one) or Duplicate/Edit (if you’re editing the existing container).
 2. In the Image field, enter the name of your custom image:
 ```bash
 tautulli-recommendations:latest
 ```
 3. Proceed to configure ports, volumes, and environment variables as needed, then Deploy the container.
+
+---
+
+- **Option 2: Using Docker Compose (No Portainer)**
+- If you are managing Tautulli with Docker Compose, follow these steps:
+If you are managing Tautulli with Docker Compose, follow these steps:
+
+1. Stop the existing Tautulli container:
+```bash
+docker compose stop tautulli
+```
+
+2. Build the new custom image:
+```bash
+docker build -t tautulli-recommendations .
+```
+
+3. Start Tautulli with Docker Compose:
+```bash
+docker compose up -d tautulli
+```
+
+Once complete, Tautulli will be running with your custom-built image and ready to use.
+
+
+
 
 ### 5. Set Up Tautulli Automation
 To have Tautulli automatically call your script whenever someone finishes watching a movie (or meets another trigger):
