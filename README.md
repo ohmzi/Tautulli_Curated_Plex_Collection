@@ -101,7 +101,6 @@ tautulli-recommendations:latest
 
 - **Option 2: Using Docker Compose (No Portainer)**
 - If you are managing Tautulli with Docker Compose, follow these steps:
-If you are managing Tautulli with Docker Compose, follow these steps:
 
 1. Stop the existing Tautulli container:
 ```bash
