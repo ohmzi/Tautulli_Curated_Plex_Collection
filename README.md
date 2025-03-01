@@ -17,17 +17,18 @@
 
 This script automates the process of:
 
-1. **Generating movie recommendations** via **OpenAI** or fallback **TMDB** .
-2. **Checking Plex** to see if recommended movies already exist.
-3. **Adding missing movies to Radarr** for automate downloading.
-4. **Refreshing a custom Plex collection** (“Inspired by your Immaculate Taste”) using a **points system** to keep it relevant and cycle them out as they get old.
+1. **Generating movie recommendations via OpenAI (with TMDb fallback)** .
+2. **Checking Plex for existing recommendations**.
+3. **Adding missing movies to Radarr or Overseerr (user-configurable)**.
+4. **Maintaining a dynamic Plex collection ("Inspired by your Immaculate Taste")**
+5. **Using a points system to keep recommendations fresh and relevant**
 
 ---
 
 ## Features
 
 - **GPT Recommendations:**  
-  Generates up to 50 movie suggestions based on a “seed” title, including sequels, same-director picks, similar genres, hidden gems, etc.
+  Generates up to 50 (configureable) movie suggestions based on a “seed” title, including sequels, same-director picks, similar genres, hidden gems, etc.
 
 - **Plex Integration:**  
   - Searches Plex for each recommended title.  
@@ -35,6 +36,10 @@ This script automates the process of:
 
 - **Radarr Automation:**  
   - If a recommended title is not in Plex, the script adds it to Radarr with a configurable root folder and tag, so Radarr can download it.
+ 
+- **Overseerr Support:**
+  -  Submit recommendations for manual approval
+Configurable root folders and quality profiles
 
 - **Points System:**  
   - New recommendations get +10 points.  
@@ -54,10 +59,16 @@ This script automates the process of:
 
 ## Requirements
 
-1. **Docker**  
-2. **Tautulli**
-3. **Plex**
-4. **Radarr**
+1. **Core Services:** <br/>
+Docker <br/>
+Plex <br/>
+Tautulli <br/>
+3. **APIs:** <br/>
+     TMDb API Key <br/>
+     OpenAI API Key (Optional) <br/>
+4. **Download Management:** (At Least One) <br/>
+     Radarr OR <br/>
+     Overseerr
 
 ---
 
