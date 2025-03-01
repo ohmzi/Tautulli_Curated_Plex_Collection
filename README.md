@@ -90,7 +90,7 @@ you to run the recommendation script **inside** the Tautulli container.
 
 ### 2. Prepare Your `config.yaml`
 
-1. Create or edit `config.yaml` with your real **Plex**, **OpenAI**, **Radarr**, and **TMDb** credentials.  
+1. Create or edit `config.yaml` with your real **Plex**, **OpenAI**, **Radarr**, **Overseerr** and **TMDb** credentials.  
 2. Make sure `config.yaml` is placed alongside your Docker build or mounted at runtime (see below).
 
 ### 3. Build the Docker Image
@@ -99,6 +99,7 @@ From the directory "Tautulli_Curated_Plex_Collection/custom-tautulli/" that cont
 ```bash
 docker build -t tautulli_recommendations .
 ```
+
 ### 4. Redeploy Tautulli with the Custom Image
 If you removed the old container, you’ll now create a new one.
 Follow the steps based on whether you're using Portainer or Docker Compose.
@@ -110,6 +111,7 @@ Follow the steps based on whether you're using Portainer or Docker Compose.
 ```bash
 tautulli_recommendations:latest
 ```
+
 3. Proceed to configure ports, volumes, and environment variables as needed, then Deploy the container.
 
 ---
