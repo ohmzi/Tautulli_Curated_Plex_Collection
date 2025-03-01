@@ -19,10 +19,5 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install --upgrade pip setuptools wheel \
  && pip install -r /tmp/requirements.txt --break-system-packages
 
-# 4) (Optionally) copy your custom scripts
-# COPY tautulli_watched_movies.py /config/scripts/tautulli_watched_movies.py
-
-
-
 
 

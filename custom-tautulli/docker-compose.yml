@@ -5,24 +5,23 @@ services:
       context: .
       dockerfile: Dockerfile
     # The final name/tag for the built image
-    image: tautulli-recommendations:latest
-
-    container_name: tautulli_custom
+    image: tautulli_recommendations:latest
+    network_mode: "host"
+    container_name: tautulli_recommendations
     # Map Tautulli's default port 8181 to the host
     ports:
       - "8181:8181"
 
     # Volumes for Tautulli config, your scripts, etc.
     volumes:
-      - /path/on/host/config:/config
-      #other volumes you have connecting with Tautulli
-      #- /data:/data 
+      - /opt/mediadepot/apps/tautulli:/config
+      - /media:/data
 
     # If you have environment variables, set them here:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=America/Los_Angeles
+      - TZ=America/New_York
 
     # Recommended so it restarts automatically
     restart: unless-stopped
