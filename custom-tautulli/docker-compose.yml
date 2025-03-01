@@ -14,8 +14,7 @@ services:
 
     # Volumes for Tautulli config, your scripts, etc.
     volumes:
-      - /opt/mediadepot/apps/tautulli:/config
-      - /media:/data
+      - /absolute/host/path/to/config:/config
 
     # If you have environment variables, set them here:
     environment:
