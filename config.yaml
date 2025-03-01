@@ -21,6 +21,6 @@ files:
 recommendation_count: 50 # Replace with Number of Movies you want to be recommended and added in single run.
 overseerr:
   url: "http://localhost:5055"
-  api_key: "OVERSEERR_API_KEY"  # Replace with your Overseerr API key
+  api_key: ""  # Add your Overseerr API key here
 
 
