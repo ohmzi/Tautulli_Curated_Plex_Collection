@@ -82,7 +82,7 @@ you to run the recommendation script **inside** the Tautulli container.
 
 From the directory "Tautulli_Curated_Plex_Collection/custom-tautulli/" that contains the `Dockerfile`, run the command in terminal: 
 ```bash
-docker build -t tautulli-recommendations .
+docker build -t tautulli_recommendations .
 ```
 ### 4. Redeploy Tautulli with the Custom Image
 If you removed the old container, you’ll now create a new one.
@@ -93,7 +93,7 @@ Follow the steps based on whether you're using Portainer or Docker Compose.
 1. In Portainer, choose Add Container (if you removed the old one) or Duplicate/Edit (if you’re editing the existing container).
 2. In the Image field, enter the name of your custom image:
 ```bash
-tautulli-recommendations:latest
+tautulli_recommendations:latest
 ```
 3. Proceed to configure ports, volumes, and environment variables as needed, then Deploy the container.
 
@@ -109,7 +109,7 @@ docker compose stop tautulli
 
 2. Build the new custom image:
 ```bash
-docker build -t tautulli-recommendations .
+docker build -t tautulli_recommendations .
 ```
 
 3. Start Tautulli with Docker Compose:
