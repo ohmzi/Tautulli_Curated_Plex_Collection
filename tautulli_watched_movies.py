@@ -6,6 +6,7 @@ import requests
 import time
 import os
 import yaml
+import requests
 
 from plexapi.server import PlexServer
 from openai import OpenAI, AuthenticationError, OpenAIError
@@ -34,6 +35,8 @@ RADARR_TAG_NAME = None
 TMDB_API_KEY = None
 POINTS_FILE = None
 TMDB_CACHE_FILE = None
+OVERSEERR_URL = None
+OVERSEERR_API_KEY = None
 
 # We'll define these references so we don't break code below when we set them after loading config
 plex = None
@@ -93,6 +96,35 @@ def save_points(points_dict):
     except Exception as e:
         print(f"Error saving points file: {e}")
 
+# ----------------- Overseerr Functions -----------------
+def send_to_overseerr(tmdb_id: int, title: str):
+    """
+    Send a request to Overseerr for manual approval.
+    """
+    if not OVERSEERR_URL or not OVERSEERR_API_KEY or OVERSEERR_URL == "" or OVERSEERR_API_KEY == "":
+        print("Overseerr not configured. Skipping Overseerr request.")
+        return False
+
+    url = f"{OVERSEERR_URL}/api/v1/request"
+    headers = {
+        "X-Api-Key": OVERSEERR_API_KEY,
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "mediaType": "movie",
+        "mediaId": tmdb_id,
+        "title": title,
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        print(f"✅ Request for '{title}' sent to Overseerr for approval.")
+        return True
+    except Exception as e:
+        print(f"⚠️ Failed to send request to Overseerr for '{title}': {e}")
+        return False
+
 # ----------------- TMDb Fetch Functions (no caching) -----------------
 
 def fetch_tmdb_id(movie_title):
@@ -139,12 +171,12 @@ def get_tmdb_rating_cached(tmdb_id):
 
 # ----------------- GPT Recommendation -----------------
 
-def get_gpt_recommendations(movie_name: str) -> list:
+def get_gpt_recommendations(movie_name: str, count: int) -> list:
     """
     Use OpenAI GPT to generate recommendations for the given movie name.
     Falls back to None if there's an auth failure or any critical error.
     """
-    prompt = f"""Return a list of 50 movies for fans of "{movie_name}" in the following categories:
+    prompt = f"""Return a list of {count} movies for fans of "{movie_name}" in the following categories:
 Direct sequels/prequels,
 Movies by the same director or featuring the lead actor,
 Movies with similar genres or themes,
@@ -164,7 +196,7 @@ Example Output: "The Dark Knight (2008), Inception (2010), ..." """
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=300
+            max_tokens=500
         )
         raw = response.choices[0].message.content.strip()
         recs = [title.strip() for title in re.split(r',|\n', raw) if title.strip()]
@@ -268,32 +300,23 @@ def add_to_radarr(title: str):
         print(f"⚠️ Could not find TMDb ID for '{title}', skipping...")
         return
 
-    movie = search_radarr_movie(tmdb_id)
-    if movie:
-        # If the movie is already in Radarr, ensure it's monitored
-        if not movie.monitored:
-            try:
-                movie.edit(monitored=True)
-                print(f"✅ '{title}' set to monitored in Radarr!")
-            except Exception as e:
-                print(f"⚠️ Failed to update '{title}': {e}")
+    if OVERSEERR_URL and OVERSEERR_API_KEY:
+        print(f"Sending '{title}' to Overseerr for approval...")
+        if send_to_overseerr(tmdb_id, base_title):
+            return
         else:
-            print(f"✅ '{title}' is already monitored in Radarr.")
-        return
+            print("Overseerr request failed. Aborting addition to Radarr.")
+            return
 
+    # Only reaches here if Overseerr is not configured.
+    print("Overseerr not configured, adding directly to Radarr.")
     print(f"Adding '{title}' to Radarr...")
     tag_id = get_or_create_radarr_tag(RADARR_TAG_NAME)
-    if tag_id is None:
-        print(f"⚠️ Skipping '{title}' due to tag creation failure.")
-        return
-
     try:
         radarr.add_movie(
             root_folder=RADARR_ROOT_FOLDER,
             quality_profile=1,
             tmdb_id=tmdb_id,
-            title=base_title,
-            year=int(year) if year else None,
             monitor=True,
             search=True,
             minimum_availability="announced",
@@ -302,6 +325,7 @@ def add_to_radarr(title: str):
         print(f"✅ Added '{title}' to Radarr.")
     except Exception as e:
         print(f"⚠️ Failed to add '{title}': {e}")
+
 
 # ----------------- Refresh Collection with Points -----------------
 
@@ -445,6 +469,7 @@ def main(movie_name: str):
     global RADARR_URL, RADARR_ROOT_FOLDER, RADARR_TAG_NAME, TMDB_API_KEY
     global POINTS_FILE, TMDB_CACHE_FILE
     global plex, client, radarr
+    global OVERSEERR_URL, OVERSEERR_API_KEY
 
     PLEX_URL = config["plex"]["url"]
     PLEX_TOKEN = config["plex"]["token"]
@@ -454,7 +479,11 @@ def main(movie_name: str):
     RADARR_ROOT_FOLDER = config["radarr"]["root_folder"]
     RADARR_TAG_NAME = config["radarr"]["tag_name"]
     TMDB_API_KEY = config["tmdb"]["api_key"]
-
+    # Optional Overseerr configuration
+    overseerr_config = config.get("overseerr", {})
+    OVERSEERR_URL = overseerr_config.get("url", "")
+    OVERSEERR_API_KEY = overseerr_config.get("api_key", "")
+    
     # File paths
     POINTS_FILE = config["files"]["points_file"]
     TMDB_CACHE_FILE = config["files"]["tmdb_cache_file"]
@@ -472,12 +501,12 @@ def main(movie_name: str):
     # Step 4) Generate recommendations
     # Strip year from the user's input if present, so TMDb won't fail to find it
     base_movie_name = strip_year_if_present(movie_name)
-
+    recommendation_count = config["openai"].get("recommendation_count", 50)
     recs = None
 
     if OPENAI_API_KEY:
         print("OpenAI API key found. Attempting GPT for recommendations...")
-        gpt_recs = get_gpt_recommendations(movie_name)
+        gpt_recs = get_gpt_recommendations(base_movie_name, recommendation_count)
         if gpt_recs:
             recs = gpt_recs
         else:
@@ -527,5 +556,4 @@ if __name__ == "__main__":
         main(sys.argv[1])
     else:
         print("Usage: python script.py 'Movie Title'")
-
 
