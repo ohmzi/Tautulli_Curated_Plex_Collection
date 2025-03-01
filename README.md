@@ -118,7 +118,14 @@ tautulli_recommendations:latest
 docker compose stop tautulli
 ```
 
-2. Build the new custom image:
+2. Update your docker-compose.yml with a bind mount for the configuration directory: <br/>
+
+```bash
+volumes:
+  - /absolute/host/path/to/config:/app/config
+```
+
+3. Build the new custom image:
 ```bash
 docker build -t tautulli_recommendations .
 ```
