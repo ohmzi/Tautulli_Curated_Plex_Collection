@@ -1,20 +1,26 @@
 plex:
   url: "http://localhost:32400"
-  token: "PLEX_TOKEN"
+  token: "PLEX_TOKEN"     # Replace with your Plex Token key
 
 openai:
-  api_key: "sk-proj-XXXXXXXXXXXXXXXXXXX"
+  api_key: "sk-proj-XXXXXXXXXXXXXXXXXXX"  # Replace with your OPENAI API key
 
 radarr:
   url: "http://localhost:7878"
-  api_key: "RADARR_API_KEY"
+  api_key: "RADARR_API_KEY"     # Replace with your Radarr API key
   root_folder: "/folder/to/you/Movies"
   tag_name: "RADARR_TAG_NAME"
 
 tmdb:
-  api_key: "TMDB_API_KEY"
+  api_key: "TMDB_API_KEY"  # Replace with your TMDB API key
 
 files:
   points_file: "recommendation_points.json"
   tmdb_cache_file: "tmdb_cache.json"
+
+recommendation_count: 50 # Replace with Number of Movies you want to be recommended and added in single run.
+overseerr:
+  url: "http://localhost:5055"
+  api_key: "OVERSEERR_API_KEY"  # Replace with your Overseerr API key
+
 
