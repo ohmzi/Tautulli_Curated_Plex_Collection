@@ -122,7 +122,8 @@ docker compose stop tautulli
 
 ```bash
 volumes:
-  - /absolute/host/path/to/config:/config
+  - /absolute/host/path/to/config/Tautalli:/config
+  - /absolute/host/path/to/movies:/Movies
 ```
 
 3. Build the new custom image:
