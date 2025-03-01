@@ -4,7 +4,7 @@
 - [Overview](#overview)  
 - [Features](#features)  
 - [Requirements](#requirements)  
-- [Usage (Docker)](#usage-docker)  
+- [Installation-Setup](#installation-setup)  
   - [1. Prerequisites](#1-prerequisites)  
   - [2. Prepare Your `config.yaml`](#2-prepare-your-configyaml)  
   - [3. Build the Docker Image](#3-build-the-docker-image)  
@@ -38,8 +38,12 @@ This script automates the process of:
   - If a recommended title is not in Plex, the script adds it to Radarr with a configurable root folder and tag, so Radarr can download it.
  
 - **Overseerr Support:**
+  -  Modified version of Overseerr needed 
+[GitHub_Overseerr_Modified](https://github.com/ohmzi/overseerr) 
+otherwise all the recommendations sent to Overseerr will automatically get approved. Thats just how Overseerr is designed, Requests made via API are directly approved.
+[GitHub Overseerr_Issue_3926](https://github.com/sct/overseerr/issues/3926)
   -  Submit recommendations for manual approval
-Configurable root folders and quality profiles
+  -  Configurable root folders and quality profiles
 
 - **Points System:**  
   - New recommendations get +10 points.  
@@ -72,7 +76,7 @@ Tautulli <br/>
 
 ---
 
-## Usage (Docker)
+## Installation-Setup
 
 This project includes a **Dockerfile** based on
 [`lscr.io/linuxserver/tautulli:latest`](https://hub.docker.com/r/lscr.io/linuxserver/tautulli).
@@ -118,15 +122,7 @@ tautulli_recommendations:latest
 docker compose stop tautulli
 ```
 
-2. Update your docker-compose.yml with a bind mount for the configuration directory: <br/>
-
-```bash
-volumes:
-  - /absolute/host/path/to/config/Tautalli:/config
-  - /absolute/host/path/to/movies:/Movies
-```
-
-3. Build the new custom image:
+2. Build the new custom image:
 ```bash
 docker build -t tautulli_recommendations .
 ```
