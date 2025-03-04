@@ -7,10 +7,13 @@ import time
 import os
 import yaml
 import requests
+import logging
 
 from plexapi.server import PlexServer
 from openai import OpenAI, AuthenticationError, OpenAIError
 from arrapi import RadarrAPI, exceptions as arr_exceptions
+from collections import defaultdict
+from pathlib import Path
 
 # -------------- Function to Load YAML Configuration --------------
 def load_config(config_path="config.yaml"):
@@ -326,6 +329,44 @@ def add_to_radarr(title: str):
     except Exception as e:
         print(f"⚠️ Failed to add '{title}': {e}")
 
+#---------------- Remove year from the title ----------------
+
+def strip_year_if_present(title_str: str) -> str:
+    """
+    If title is in the format 'Inception (2010)' or 'Titanic [1997]',
+    strip out the year portion for a better TMDb search query.
+    Returns the base title without parentheses or brackets.
+    """
+    match = re.match(r"(.*?)(\s*\(\d{4}\)|\s*\[\d{4}\])$", title_str)
+    if match:
+        base_title = match.group(1).strip()
+        return base_title
+    return title_str
+    
+# ----------------- Run other scripts for cleaning up duplicates -----------------
+
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+
+def executing_other_scripts():
+    executing_deleting_duplicate_in_plex_script()
+    executing_unmonitoring_duplicate_in_radarr_script()
+    
+def executing_unmonitoring_duplicate_in_radarr_script():
+    try:
+        with open("radarr_plex_monitor.py") as f:
+            exec(f.read())
+    except Exception as e:
+        print(f"Secondary script failed: {str(e)}")
+
+def executing_deleting_duplicate_in_plex_script():
+    try:
+        with open("plex_duplicate_cleaner.py") as f:
+            exec(f.read())
+    except Exception as e:
+        print(f"Secondary script failed: {str(e)}")
 
 # ----------------- Refresh Collection with Points -----------------
 
@@ -413,7 +454,7 @@ def refresh_collection_with_points(recommended_titles):
     save_points(points_data)
 
     # Debug
-    print("\n========== DEBUG LOG ==========")
+    print("\n========== RECOMMENDATION DEBUG LOG ==========")
     print("REMOVED (points <5 and rating <=8):")
     for title, pts, rating in removed_list:
         print(f"  - {title} => points={pts}, rating={rating}")
@@ -427,7 +468,7 @@ def refresh_collection_with_points(recommended_titles):
         print(f"  => {movie.title}, points={pts}, rating={rating}")
 
     print(f"Final total: {len(final_movies)}")
-    print("========== END DEBUG LOG ==========\n")
+    print("========== END RECOMMENDATION DEBUG LOG ==========\n")
 
     # Update or create
     try:
@@ -448,7 +489,8 @@ def refresh_collection_with_points(recommended_titles):
                 print("No movies to create a new collection with.")
     except Exception as e:
         print(f"Error updating collection: {e}")
-
+        
+        
 # ----------------- Main -----------------
 
 def main(movie_name: str):
@@ -460,6 +502,7 @@ def main(movie_name: str):
     5) Add to Radarr if not in Plex
     6) Refresh collection
     7) Save TMDb cache
+    8) Clean up duplicate in Plex and Radarr
     """
     # Step 1) Load config
     config = load_config("config.yaml")
@@ -537,20 +580,10 @@ def main(movie_name: str):
 
     # Step 7) Save the TMDb cache
     save_tmdb_cache()
-
-def strip_year_if_present(title_str: str) -> str:
-    """
-    If title is in the format 'Inception (2010)' or 'Titanic [1997]',
-    strip out the year portion for a better TMDb search query.
-    Returns the base title without parentheses or brackets.
-    """
-    match = re.match(r"(.*?)(\s*\(\d{4}\)|\s*\[\d{4}\])$", title_str)
-    if match:
-        base_title = match.group(1).strip()
-        return base_title
-    return title_str
-
-
+    
+    # Step 8) Clean up duplicate in Plex and Radarr
+    executing_other_scripts()
+    
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         main(sys.argv[1])
