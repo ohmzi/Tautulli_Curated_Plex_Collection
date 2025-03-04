@@ -1,6 +1,9 @@
 plex:
   url: "http://localhost:32400"
   token: "PLEX_TOKEN"     # Replace with your Plex Token key
+  movie_library_name: "Movies"
+  delete_preference: "largest_file"  # Options: smallest_file, oldest, newest
+  preserve_quality: [] # Files with these keywords won't be deleted
 
 openai:
   api_key: "sk-proj-XXXXXXXXXXXXXXXXXXX"  # Replace with your OPENAI API key
@@ -22,5 +25,4 @@ recommendation_count: 50 # Replace with Number of Movies you want to be recommen
 overseerr:
   url: "http://localhost:5055"
   api_key: ""  # Add your Overseerr API key here
-
 
