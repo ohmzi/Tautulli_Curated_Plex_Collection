@@ -22,6 +22,7 @@ This script automates the process of:
 3. **Adding missing movies to Radarr or Overseerr (user-configurable)**.
 4. **Maintaining a dynamic Plex collection ("Inspired by your Immaculate Taste")**
 5. **Using a points system to keep recommendations fresh and relevant**
+6. **Clean up duplicates in Plex and Unmonitored in Radarr**
 
 ---
 
@@ -33,9 +34,11 @@ This script automates the process of:
 - **Plex Integration:**  
   - Searches Plex for each recommended title.  
   - If found, the script will later include it in (or keep it in) a dedicated collection.
+  - Remove one file from movies identified as duplicates 
 
 - **Radarr Automation:**  
   - If a recommended title is not in Plex, the script adds it to Radarr with a configurable root folder and tag, so Radarr can download it.
+  - Unmonitor the movies already existing in Plex
  
 - **Overseerr Support:**
   -  Modified version of Overseerr needed 
