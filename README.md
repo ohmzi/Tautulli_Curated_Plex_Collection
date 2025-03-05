@@ -196,3 +196,6 @@ Plex Duplicate Cleanup
 ![alt text](https://github.com/ohmzi/Tautulli_Curated_Plex_Collection/blob/main_script_plus_cleanup_duplicates/sample_run_pictures/plex_duplicate_delete_log.png?raw=false)
 
 Radarr Unmonitor Existing Plex Movies
+![alt text](https://github.com/ohmzi/Tautulli_Curated_Plex_Collection/blob/main_script_plus_cleanup_duplicates/sample_run_pictures/radarr_unmonitor_log.png?raw=false)
+
+
