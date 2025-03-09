@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+
+# Ensure correct imports
 import sys
 import re
 import json
@@ -15,19 +17,21 @@ from arrapi import RadarrAPI, exceptions as arr_exceptions
 from collections import defaultdict
 from pathlib import Path
 
+# -------------- Setup Logging --------------
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+
 # -------------- Function to Load YAML Configuration --------------
 def load_config(config_path="config.yaml"):
-    """
-    Loads the configuration from a local YAML file.
-    Returns a dictionary with all the relevant settings.
-    """
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
     return config
 
-# ----------------- Global Variables (populated later) -------------
+# ----------------- Global Variables -----------------
 PLEX_URL = None
 PLEX_TOKEN = None
 OPENAI_API_KEY = None
@@ -105,7 +109,7 @@ def send_to_overseerr(tmdb_id: int, title: str):
     Send a request to Overseerr for manual approval.
     """
     if not OVERSEERR_URL or not OVERSEERR_API_KEY or OVERSEERR_URL == "" or OVERSEERR_API_KEY == "":
-        print("Overseerr not configured. Skipping Overseerr request.")
+        logging.info("Overseerr not configured. Skipping Overseerr request.")
         return False
 
     url = f"{OVERSEERR_URL}/api/v1/request"
@@ -206,7 +210,7 @@ Example Output: "The Dark Knight (2008), Inception (2010), ..." """
         return recs
 
     except AuthenticationError as e:
-        print("OpenAI API Key authentication failure. Will fallback to TMDb.")
+        logging.info("OpenAI API Key authentication failure. Will fallback to TMDb.")
         return None
 
     except OpenAIError as e:
@@ -308,11 +312,11 @@ def add_to_radarr(title: str):
         if send_to_overseerr(tmdb_id, base_title):
             return
         else:
-            print("Overseerr request failed. Aborting addition to Radarr.")
+            logging.info("Overseerr request failed. Aborting addition to Radarr.")
             return
 
     # Only reaches here if Overseerr is not configured.
-    print("Overseerr not configured, adding directly to Radarr.")
+    logging.info("Overseerr not configured, adding directly to Radarr.")
     print(f"Adding '{title}' to Radarr...")
     tag_id = get_or_create_radarr_tag(RADARR_TAG_NAME)
     try:
@@ -374,7 +378,7 @@ def refresh_collection_with_points(recommended_titles):
     collection_name = "Inspired by your Immaculate Taste"
     movies_section = plex.library.section('Movies')
     
-    print("Refreshing Plex Movies library...")
+    logging.info("Refreshing Plex Movies library...")
     try:
         movies_section.refresh()
     except Exception as e:
@@ -393,7 +397,7 @@ def refresh_collection_with_points(recommended_titles):
         print(f"Existing collection '{collection_name}' has {len(old_movies)} items.")
     else:
         old_movies = []
-        print("No existing collection found; will create one if needed.")
+        logging.info("No existing collection found; will create one if needed.")
 
     points_data = load_points()
     
@@ -454,21 +458,21 @@ def refresh_collection_with_points(recommended_titles):
     save_points(points_data)
 
     # Debug
-    print("\n========== RECOMMENDATION DEBUG LOG ==========")
-    print("REMOVED (points <5 and rating <=8):")
+    logging.info("\n========== RECOMMENDATION DEBUG LOG ==========")
+    logging.info("REMOVED (points <5 and rating <=8):")
     for title, pts, rating in removed_list:
         print(f"  - {title} => points={pts}, rating={rating}")
 
-    print("\nKEPT in collection (before sorting):")
+    logging.info("\nKEPT in collection (before sorting):")
     for title, pts, rating in kept_list:
         print(f"  + {title} => points={pts}, rating={rating}")
 
-    print("\nFinal sorted set:")
+    logging.info("\nFinal sorted set:")
     for movie, pts, rating in filtered_candidates:
         print(f"  => {movie.title}, points={pts}, rating={rating}")
 
     print(f"Final total: {len(final_movies)}")
-    print("========== END RECOMMENDATION DEBUG LOG ==========\n")
+    logging.info("========== END RECOMMENDATION DEBUG LOG ==========\n")
 
     # Update or create
     try:
@@ -480,13 +484,13 @@ def refresh_collection_with_points(recommended_titles):
                 collection.addItems(final_movies)
                 print(f"Collection updated with {len(final_movies)} items.")
             else:
-                print("No movies to add; collection will be empty.")
+                logging.info("No movies to add; collection will be empty.")
         else:
             if final_movies:
                 new_collection = movies_section.createCollection(collection_name, final_movies)
                 print(f"Created new collection '{collection_name}' with {len(final_movies)} items.")
             else:
-                print("No movies to create a new collection with.")
+                logging.info("No movies to create a new collection with.")
     except Exception as e:
         print(f"Error updating collection: {e}")
         
@@ -510,18 +514,23 @@ def main(movie_name: str):
     # Step 2) Set up globals
     global PLEX_URL, PLEX_TOKEN, OPENAI_API_KEY, RADARR_API_KEY
     global RADARR_URL, RADARR_ROOT_FOLDER, RADARR_TAG_NAME, TMDB_API_KEY
-    global POINTS_FILE, TMDB_CACHE_FILE
+    global POINTS_FILE, TMDB_CACHE_FILE, OVERSEERR_URL, OVERSEERR_API_KEY
     global plex, client, radarr
-    global OVERSEERR_URL, OVERSEERR_API_KEY
+
+    # Ignore the script if the movie is "plex-intro"
+    if movie_name.lower() == "plex-intro":
+        logging.info("its only intro and doesn't need script to be ran for this...")
+        return
 
     PLEX_URL = config["plex"]["url"]
     PLEX_TOKEN = config["plex"]["token"]
-    OPENAI_API_KEY = config["openai"].get("api_key")  # Might be None or empty
+    OPENAI_API_KEY = config["openai"].get("api_key")
     RADARR_URL = config["radarr"]["url"]
     RADARR_API_KEY = config["radarr"]["api_key"]
     RADARR_ROOT_FOLDER = config["radarr"]["root_folder"]
     RADARR_TAG_NAME = config["radarr"]["tag_name"]
     TMDB_API_KEY = config["tmdb"]["api_key"]
+
     # Optional Overseerr configuration
     overseerr_config = config.get("overseerr", {})
     OVERSEERR_URL = overseerr_config.get("url", "")
@@ -548,25 +557,25 @@ def main(movie_name: str):
     recs = None
 
     if OPENAI_API_KEY:
-        print("OpenAI API key found. Attempting GPT for recommendations...")
+        logging.info("OpenAI API key found. Attempting GPT for recommendations...")
         gpt_recs = get_gpt_recommendations(base_movie_name, recommendation_count)
         if gpt_recs:
             recs = gpt_recs
         else:
-            print("GPT recommendation failed or was empty. Falling back to TMDb...")
+            logging.info("GPT recommendation failed or was empty. Falling back to TMDb...")
             recs = get_tmdb_recommendations(base_movie_name)
     else:
-        print("No OpenAI API key provided. Using TMDb fallback for recommendations...")
+        logging.info("No OpenAI API key provided. Using TMDb fallback for recommendations...")
         recs = get_tmdb_recommendations(base_movie_name)
 
     # If we still have no recs, exit
     if not recs:
-        print("No recommendations generated.")
+        logging.info("No recommendations found.")
         return
 
 
     # Step 5) Add to Radarr if not in Plex
-    print("\nProcessing recommendations:")
+    logging.info("\nProcessing recommendations:")
     for title in recs:
         found_in_plex = find_plex_movie(title)
         if found_in_plex:
@@ -588,5 +597,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         main(sys.argv[1])
     else:
-        print("Usage: python script.py 'Movie Title'")
-
+        logging.info("Usage: python script.py 'Movie Title'")
