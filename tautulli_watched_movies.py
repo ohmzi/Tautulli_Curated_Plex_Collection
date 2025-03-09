@@ -35,6 +35,7 @@ def load_config(config_path="config.yaml"):
 PLEX_URL = None
 PLEX_TOKEN = None
 OPENAI_API_KEY = None
+RECOMMENDATION_COUNT = None
 RADARR_API_KEY = None
 RADARR_URL = None
 RADARR_ROOT_FOLDER = None
@@ -44,6 +45,8 @@ POINTS_FILE = None
 TMDB_CACHE_FILE = None
 OVERSEERR_URL = None
 OVERSEERR_API_KEY = None
+PLEX_CLEANER_PERMISSION = None
+RADARR_UNMONITOR_PERMISSION = None
 
 # We'll define these references so we don't break code below when we set them after loading config
 plex = None
@@ -354,9 +357,16 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-def executing_other_scripts():
-    executing_deleting_duplicate_in_plex_script()
-    executing_unmonitoring_duplicate_in_radarr_script()
+def executing_other_scripts(PLEX_CLEANER_PERMISSION,RADARR_UNMONITOR_PERMISSION):
+    if PLEX_CLEANER_PERMISSION:
+        executing_deleting_duplicate_in_plex_script()
+    else:
+        logging.info("Skipping Plex duplicate cleaner as per configuration.")
+
+    if RADARR_UNMONITOR_PERMISSION:
+        executing_unmonitoring_duplicate_in_radarr_script()
+    else:
+        logging.info("Skipping Radarr unmonitoring script as per configuration.")
     
 def executing_unmonitoring_duplicate_in_radarr_script():
     try:
@@ -529,7 +539,8 @@ def main(movie_name: str, media_type: str):
 
     PLEX_URL = config["plex"]["url"]
     PLEX_TOKEN = config["plex"]["token"]
-    OPENAI_API_KEY = config["openai"].get("api_key")
+    OPENAI_API_KEY = config["openai"]["api_key"]
+    RECOMMENDATION_COUNT = config["openai"].get("recommendation_count", 50)
     RADARR_URL = config["radarr"]["url"]
     RADARR_API_KEY = config["radarr"]["api_key"]
     RADARR_ROOT_FOLDER = config["radarr"]["root_folder"]
@@ -537,10 +548,13 @@ def main(movie_name: str, media_type: str):
     TMDB_API_KEY = config["tmdb"]["api_key"]
 
     # Optional Overseerr configuration
-    overseerr_config = config.get("overseerr", {})
-    OVERSEERR_URL = overseerr_config.get("url", "")
-    OVERSEERR_API_KEY = overseerr_config.get("api_key", "")
+    OVERSEERR_URL = config["overseerr"]["url"] 
+    OVERSEERR_API_KEY =  config["overseerr"]["api_key"] 
     
+    # Optional Cleaner Permissions
+    PLEX_CLEANER_PERMISSION = config["scripts_run"]["run_plex_duplicate_cleaner"] 
+    RADARR_UNMONITOR_PERMISSION = config["scripts_run"]["run_radarr_plex_monitor"]
+
     # File paths
     POINTS_FILE = config["files"]["points_file"]
     TMDB_CACHE_FILE = config["files"]["tmdb_cache_file"]
@@ -558,12 +572,11 @@ def main(movie_name: str, media_type: str):
     # Step 4) Generate recommendations
     # Strip year from the user's input if present, so TMDb won't fail to find it
     base_movie_name = strip_year_if_present(movie_name)
-    recommendation_count = config["openai"].get("recommendation_count", 50)
     recs = None
 
     if OPENAI_API_KEY:
-        logging.info("OpenAI API key found. Attempting GPT for recommendations...")
-        gpt_recs = get_gpt_recommendations(base_movie_name, recommendation_count)
+        logging.info("OpenAI API key found. Attempting GPT for %s recommendations...", RECOMMENDATION_COUNT)
+        gpt_recs = get_gpt_recommendations(base_movie_name, RECOMMENDATION_COUNT)
         if gpt_recs:
             recs = gpt_recs
         else:
@@ -596,7 +609,7 @@ def main(movie_name: str, media_type: str):
     save_tmdb_cache()
     
     # Step 8) Clean up duplicate in Plex and Radarr
-    executing_other_scripts()
+    executing_other_scripts(PLEX_CLEANER_PERMISSION, RADARR_UNMONITOR_PERMISSION)
     
 if __name__ == "__main__":
     if len(sys.argv) > 1:
