@@ -7,6 +7,7 @@ plex:
 
 openai:
   api_key: "sk-proj-XXXXXXXXXXXXXXXXXXX"  # Replace with your OPENAI API key
+  recommendation_count: 50 # Replace with Number of Movies you want to be recommended and added in single run.
 
 radarr:
   url: "http://localhost:7878"
@@ -21,8 +22,10 @@ files:
   points_file: "recommendation_points.json"
   tmdb_cache_file: "tmdb_cache.json"
 
-recommendation_count: 50 # Replace with Number of Movies you want to be recommended and added in single run.
 overseerr:
   url: "http://localhost:5055"
   api_key: ""  # Add your Overseerr API key here
 
+scripts_run:
+  run_plex_duplicate_cleaner: false # Change to true if you want to Run Plex Duplicate Cleaner
+  run_radarr_plex_monitor: false # Change to true if you want to Run Radarr Plex Monitor
