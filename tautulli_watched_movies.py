@@ -497,7 +497,7 @@ def refresh_collection_with_points(recommended_titles):
         
 # ----------------- Main -----------------
 
-def main(movie_name: str):
+def main(movie_name: str, media_type: str):
     """
     1) Load YAML config and set up global variables
     2) Initialize clients (Plex, OpenAI, Radarr) from config
@@ -516,6 +516,11 @@ def main(movie_name: str):
     global RADARR_URL, RADARR_ROOT_FOLDER, RADARR_TAG_NAME, TMDB_API_KEY
     global POINTS_FILE, TMDB_CACHE_FILE, OVERSEERR_URL, OVERSEERR_API_KEY
     global plex, client, radarr
+
+    # Ignore script if media type is TV show
+    if media_type.lower() == "show":
+        logging.info(f"TV show detected ('{movie_name}'). Skipping script execution.")
+        return
 
     # Ignore the script if the movie is "plex-intro"
     if movie_name.lower() == "plex-intro":
@@ -595,6 +600,6 @@ def main(movie_name: str):
     
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        main(sys.argv[1])
+        main(sys.argv[1], sys.argv[2])
     else:
-        logging.info("Usage: python script.py 'Movie Title'")
+        logging.info("Usage: python script.py 'Movie Title' 'media_type'")
