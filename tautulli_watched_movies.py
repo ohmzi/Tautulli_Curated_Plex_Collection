@@ -531,6 +531,10 @@ def main(movie_name: str, media_type: str):
     if media_type.lower() == "show":
         logging.info(f"TV show detected ('{movie_name}'). Skipping script execution.")
         return
+        
+    if media_type.lower() == "episode":
+        logging.info(f"TV show detected ('{movie_name}'). Skipping script execution.")
+        return
 
     # Ignore the script if the movie is "plex-intro"
     if movie_name.lower() == "plex-intro":
