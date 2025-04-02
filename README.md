@@ -1,4 +1,4 @@
-# Plex Movie Recommendations Script Triggered from Tautulli within Docker
+  # Plex Movie Recommendations Script Triggered from Tautulli within Docker
 
 **Table of Contents**  
 - [Overview](#overview)  
@@ -198,3 +198,4 @@ Plex Duplicate Cleanup
 Radarr Unmonitor Existing Plex Movies
 ![alt text](https://github.com/ohmzi/Tautulli_Curated_Plex_Collection/blob/main_script_plus_cleanup_duplicates/sample_run_pictures/radarr_unmonitor_log_2.png?raw=false)
 
+---
