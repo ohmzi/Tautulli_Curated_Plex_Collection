@@ -12,7 +12,6 @@
   - [5. Set Up Tautulli Automation](#5-set-up-tautulli-automation)
 
 ---
----
 
 ## Overview
 
