@@ -2,6 +2,7 @@ plex:
   url: "http://localhost:32400"
   token: "PLEX_TOKEN"     # Replace with your Plex Token key
   movie_library_name: "Movies"
+  collection_name: "Inspired by your Immaculate Taste"  # Name of the Plex collection
   delete_preference: "largest_file"  # Options: smallest_file, oldest, newest
   preserve_quality: [] # Files with these keywords won't be deleted
 

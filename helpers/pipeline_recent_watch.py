@@ -4,8 +4,12 @@ from helpers.config_loader import load_config
 from helpers.tmdb_cache import TMDbCache
 from helpers.recommender import get_recommendations
 from helpers.plex_search import find_plex_movie
-from helpers.plex_collection_manager import refresh_collection_with_points
+from helpers.plex_collection_manager import (
+    build_final_items_with_points,
+    _get_points,
+)
 from plexapi.server import PlexServer
+from plexapi.exceptions import NotFound
 import helpers.radarr_utils as radarr_utils  # ✅ use ONE style
 
 import json
@@ -99,20 +103,48 @@ def run_pipeline(movie_name, media_type, ctx=None):
         pipeline_stats["radarr_already_monitored"] += radarr_result.get("already_monitored", 0)
         pipeline_stats["radarr_failed"] += radarr_result.get("failed", 0)
 
-    # --- Collection refresh
-    with ctx.step(logger, "collection_refresh", found=len(plex_movies)):
-        collection_stats = refresh_collection_with_points(
-            plex=plex,
-            library_name=cfg.plex.movie_library_name,
-            collection_name=cfg.plex.collection_name,
+    # --- Update points and clean up (deferred Plex collection update)
+    with ctx.step(logger, "points_update", found=len(plex_movies)):
+        # Get existing collection items to build final list
+        section = plex.library.section(cfg.plex.movie_library_name)
+        existing_items = []
+        try:
+            collection = section.collection(cfg.plex.collection_name)
+            existing_items = collection.items()
+        except NotFound:
+            # Collection doesn't exist yet, that's fine
+            pass
+        
+        # Build final items list and update points (same logic as before)
+        final_items, suggested_now_keys = build_final_items_with_points(
+            section=section,
+            existing_items=existing_items,
             plex_movies_this_run=plex_movies,
             tmdb_cache=tmdb_cache,
             points_data=points_data,
             max_points=50,
-            logger=logger,  # ✅ pass pipeline logger
-            randomize=getattr(cfg.plex, "randomize_collection", False),  # ✅ boolean
         )
-        logger.info(f"collection_refresh stats={collection_stats}")
+        
+        # Remove items with points <= 0 (cleanup)
+        keys_to_remove = [
+            key for key in points_data.keys()
+            if _get_points(points_data, key) <= 0
+        ]
+        for key in keys_to_remove:
+            del points_data[key]
+        
+        if keys_to_remove:
+            logger.info(f"points_update: removed {len(keys_to_remove)} items with points <= 0")
+        
+        collection_stats = {
+            "existing_seeded": len(existing_items),
+            "suggested_now": len(suggested_now_keys),
+            "kept_in_collection": len(final_items),
+            "points_total": len(points_data),
+            "removed_low_points": len(keys_to_remove),
+        }
+        logger.info(f"points_update stats={collection_stats}")
+        logger.info(f"Points updated in {points_path} (will be applied to Plex by midnight organizer)")
 
     save_points(points_path, points_data, logger)
     logger.info(f"Saved points entries={len(points_data)} to {points_path}")
