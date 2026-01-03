@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +39,34 @@ export function Navigation() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [buttonPositions, setButtonPositions] = useState<{ left: number; width: number }[]>([]);
+
+  // Update button positions when they change
+  useEffect(() => {
+    const updatePositions = () => {
+      const positions = buttonRefs.current.map((ref) => {
+        if (ref) {
+          const rect = ref.getBoundingClientRect();
+          const parentRect = ref.parentElement?.parentElement?.getBoundingClientRect();
+          return {
+            left: rect.left - (parentRect?.left || 0),
+            width: rect.width,
+          };
+        }
+        return { left: 0, width: 0 };
+      });
+      setButtonPositions(positions);
+    };
+
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(updatePositions, 0);
+    window.addEventListener('resize', updatePositions);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updatePositions);
+    };
+  }, [hoveredIndex]);
 
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -162,7 +190,30 @@ export function Navigation() {
               </button>
 
               {/* Navigation Items */}
-              <div className="flex items-center gap-1">
+              <div className="relative flex items-center gap-1">
+                {/* Sliding rectangle indicator - hover only, like mobile */}
+                <AnimatePresence>
+                  {hoveredIndex !== null && buttonPositions[hoveredIndex] && (
+                    <motion.div
+                      layoutId="navIndicator"
+                      initial={false}
+                      animate={{
+                        left: buttonPositions[hoveredIndex].left,
+                        width: buttonPositions[hoveredIndex].width,
+                        opacity: 1,
+                      }}
+                      exit={{ opacity: 0 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 400,
+                        damping: 30,
+                      }}
+                      className="absolute bottom-0 top-0 rounded-xl border border-white/40 bg-white/20 backdrop-blur-sm pointer-events-none z-0"
+                      style={{ position: 'absolute' }}
+                    />
+                  )}
+                </AnimatePresence>
+
                 {navItems.map((item, index) => (
                   <div
                     key={item.label}
@@ -170,46 +221,57 @@ export function Navigation() {
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
                   >
-                    <button className="relative px-5 py-2.5 text-sm text-white/90 hover:text-white active:text-white transition-all duration-300 rounded-2xl overflow-hidden group active:scale-[0.98] outline-none focus-visible:outline-none">
+                    <button
+                      ref={(el) => {
+                        buttonRefs.current[index] = el;
+                      }}
+                      className="relative flex items-center justify-center px-5 py-2.5 text-sm text-white/90 hover:text-white active:text-white transition-all duration-300 rounded-2xl overflow-hidden group active:scale-[0.98] outline-none focus-visible:outline-none"
+                    >
                       {/* Glassy button background */}
                       <div className="absolute inset-0 bg-white/8 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl" />
-                      {/* Modern diffused glow effect on hover */}
-                      <div className="absolute -inset-1 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl blur-xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10" />
-                      <div className="absolute -inset-2 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5" />
+                      {/* Enhanced diffused glow effect - white glow instead of violet/purple */}
+                      <div className="absolute -inset-0.5 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-500 rounded-2xl blur-md bg-white/20" />
+                      <div className="absolute -inset-1 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-500 rounded-2xl blur-xl bg-white/15" />
+                      <div className="absolute -inset-2 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-500 rounded-2xl blur-2xl bg-white/10" />
+                      <div className="absolute -inset-3 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-500 rounded-2xl blur-3xl bg-white/5" />
+                      {/* Subtle inner glow */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-40 group-active:opacity-40 transition-opacity duration-500 rounded-2xl bg-white/5" />
                       <span className="relative z-10">{item.label}</span>
                     </button>
 
-                    {/* Dropdown Card */}
-                    <AnimatePresence>
-                      {hoveredIndex === index && item.dropdown && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute top-full left-0 mt-2 min-w-[220px] rounded-2xl overflow-hidden shadow-2xl"
-                        >
-                          <div className="bg-[#0b0c0f]/70 backdrop-blur-2xl border border-white/10 p-2">
-                            {item.dropdown.map((subItem, subIndex) => (
-                              <button
-                                key={subIndex}
-                                className="relative w-full text-left px-4 py-3 text-sm text-white/90 rounded-xl transition-all duration-200 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] outline-none focus-visible:outline-none"
-                                onClick={() => {
-                                  setHoveredIndex(null);
-                                  navigate(subItem.to);
-                                }}
-                              >
-                                <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
-                                <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
-                                <span className="relative z-10">{subItem.label}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ))}
+                      {/* Dropdown Card */}
+                      <AnimatePresence>
+                        {hoveredIndex === index && item.dropdown && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute top-full left-0 mt-2 min-w-[220px] rounded-2xl overflow-hidden shadow-2xl"
+                          >
+                            <div className="bg-[#0b0c0f]/70 backdrop-blur-2xl border border-white/10 p-2">
+                              {item.dropdown.map((subItem, subIndex) => (
+                                <button
+                                  key={subIndex}
+                                  className="relative w-full text-left px-4 py-3 text-sm text-white/90 rounded-xl transition-all duration-200 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] outline-none focus-visible:outline-none"
+                                  onClick={() => {
+                                    setHoveredIndex(null);
+                                    navigate(subItem.to);
+                                  }}
+                                >
+                                  <div className="absolute -inset-0.5 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-md bg-gradient-to-br from-violet-400/30 via-purple-500/20 to-fuchsia-400/15 -z-10" />
+                                  <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/18 to-fuchsia-500/12 -z-10" />
+                                  <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/8 -z-10" />
+                                  <div className="absolute inset-0 opacity-0 hover:opacity-60 active:opacity-60 transition-opacity duration-500 rounded-xl bg-gradient-to-br from-violet-400/10 via-purple-400/5 to-transparent -z-10" />
+                                  <span className="relative z-10">{subItem.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
               </div>
 
               {/* Right side buttons */}
@@ -241,11 +303,14 @@ export function Navigation() {
                   <motion.button
                     animate={{ x: isSearchOpen ? 0 : 0 }}
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative p-2.5 text-white/80 hover:text-white transition-all duration-300 rounded-full hover:bg-white/10 active:bg-white/15 active:scale-95 backdrop-blur-sm z-10 outline-none focus-visible:outline-none"
+                    className="relative flex items-center justify-center p-2.5 text-white/80 hover:text-white transition-all duration-300 rounded-full hover:bg-white/10 active:bg-white/15 active:scale-95 backdrop-blur-sm z-10 outline-none focus-visible:outline-none"
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
                   >
-                    <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
-                    <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                    <div className="absolute -inset-0.5 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-md bg-gradient-to-br from-violet-400/30 via-purple-500/20 to-fuchsia-400/15 -z-10" />
+                    <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/18 to-fuchsia-500/12 -z-10" />
+                    <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/8 -z-10" />
+                    <div className="absolute -inset-3 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-3xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                    <div className="absolute inset-0 opacity-0 hover:opacity-60 active:opacity-60 transition-opacity duration-500 rounded-full bg-gradient-to-br from-violet-400/10 via-purple-400/5 to-transparent -z-10" />
                     <span className="relative z-10"><Search size={20} /></span>
                   </motion.button>
                 </div>
@@ -253,10 +318,13 @@ export function Navigation() {
                 <div className="relative">
                   <button
                     onClick={() => setIsHelpOpen(!isHelpOpen)}
-                    className="relative px-5 py-2.5 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 active:scale-[0.98] backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 outline-none focus-visible:outline-none"
+                    className="relative flex items-center justify-center px-5 py-2.5 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 active:scale-[0.98] backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 outline-none focus-visible:outline-none"
                   >
-                    <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
-                    <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                    <div className="absolute -inset-0.5 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-md bg-gradient-to-br from-violet-400/30 via-purple-500/20 to-fuchsia-400/15 -z-10" />
+                    <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/18 to-fuchsia-500/12 -z-10" />
+                    <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/8 -z-10" />
+                    <div className="absolute -inset-3 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-full blur-3xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                    <div className="absolute inset-0 opacity-0 hover:opacity-60 active:opacity-60 transition-opacity duration-500 rounded-full bg-gradient-to-br from-violet-400/10 via-purple-400/5 to-transparent -z-10" />
                     <span className="relative z-10">Help</span>
                   </button>
 
@@ -282,8 +350,10 @@ export function Navigation() {
                               disabled={logoutMutation.isPending}
                               className="relative w-full px-4 py-2.5 text-left text-sm text-orange-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all font-medium disabled:opacity-50 outline-none focus-visible:outline-none"
                             >
-                              <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
-                              <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                              <div className="absolute -inset-0.5 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-md bg-gradient-to-br from-violet-400/30 via-purple-500/20 to-fuchsia-400/15 -z-10" />
+                              <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/18 to-fuchsia-500/12 -z-10" />
+                              <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/8 -z-10" />
+                              <div className="absolute inset-0 opacity-0 hover:opacity-60 active:opacity-60 transition-opacity duration-500 rounded-xl bg-gradient-to-br from-violet-400/10 via-purple-400/5 to-transparent -z-10" />
                               <span className="relative z-10">Reset Account to Fresh Setup</span>
                             </button>
                           </div>
@@ -294,8 +364,10 @@ export function Navigation() {
                               disabled={logoutMutation.isPending}
                               className="relative w-full px-4 py-2.5 text-left text-sm text-red-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all flex items-center gap-2 font-medium disabled:opacity-50 outline-none focus-visible:outline-none"
                             >
-                              <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
-                              <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                              <div className="absolute -inset-0.5 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-md bg-gradient-to-br from-violet-400/30 via-purple-500/20 to-fuchsia-400/15 -z-10" />
+                              <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/18 to-fuchsia-500/12 -z-10" />
+                              <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-500 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/8 -z-10" />
+                              <div className="absolute inset-0 opacity-0 hover:opacity-60 active:opacity-60 transition-opacity duration-500 rounded-xl bg-gradient-to-br from-violet-400/10 via-purple-400/5 to-transparent -z-10" />
                               <span className="relative z-10 flex items-center gap-2">
                                 <LogOut size={16} />
                                 {logoutMutation.isPending ? 'Logging out...' : 'Logout'}

@@ -207,7 +207,7 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                       stiffness: 400,
                       damping: 30,
                     }}
-                    className="absolute bottom-2 top-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm"
+                    className="absolute bottom-2 top-2 rounded-full border border-white/40 bg-white/20 backdrop-blur-sm"
                     style={{ position: 'absolute' }}
                   />
                 </>
@@ -225,8 +225,8 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                   onClick={() => handleButtonClick(index)}
                   className="relative z-20 rounded-full px-4 py-2.5 text-xs font-medium text-white/70 transition-all duration-200 hover:text-white active:bg-white/10 active:text-white active:scale-[0.98] outline-none focus-visible:outline-none"
                 >
-                  <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
-                  <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                  <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-full blur-xl bg-white/20 -z-10" />
+                  <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-full blur-2xl bg-white/15 -z-10" />
                   <span className={`relative z-10 ${selectedIndex === index ? 'text-white' : ''}`}>{item.label}</span>
                 </button>
               ))}
