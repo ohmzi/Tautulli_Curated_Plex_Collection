@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CircleAlert, Loader2, Play, Save, Shield } from 'lucide-react';
+import { CircleAlert, Loader2, Play, Save } from 'lucide-react';
 
 import { listJobs, runJob, updateJobSchedule } from '@/api/jobs';
 // (status pill lives on History/Detail pages now)
@@ -11,7 +11,6 @@ type ScheduleFrequency = 'daily' | 'weekly' | 'monthly';
 
 type ScheduleDraft = {
   enabled: boolean;
-  timezone: string;
   frequency: ScheduleFrequency;
   time: string; // HH:MM
   dayOfWeek: string; // 0-6 (Sun-Sat)
@@ -109,13 +108,11 @@ function buildCronFromDraft(draft: ScheduleDraft): string | null {
 function defaultDraftFromCron(params: {
   cron: string;
   enabled: boolean;
-  timezone: string | null;
 }): ScheduleDraft {
   const parsed = parseSimpleCron(params.cron);
   if (parsed) {
     return {
       enabled: params.enabled,
-      timezone: params.timezone ?? '',
       frequency: parsed.frequency,
       time: `${pad2(parsed.hour)}:${pad2(parsed.minute)}`,
       dayOfWeek: String(parsed.dow ?? 1),
@@ -127,7 +124,6 @@ function defaultDraftFromCron(params: {
   // Fallback: represent as a daily schedule. Saving will convert the advanced cron to simple.
   return {
     enabled: params.enabled,
-    timezone: params.timezone ?? '',
     frequency: 'daily',
     time: '03:00',
     dayOfWeek: '1',
@@ -165,7 +161,6 @@ export function JobsPage() {
         [vars.jobId]: defaultDraftFromCron({
           cron: data.schedule.cron,
           enabled: data.schedule.enabled,
-          timezone: data.schedule.timezone ?? null,
         }),
       }));
     },
@@ -247,25 +242,22 @@ export function JobsPage() {
                 </div>
               </div>
             ) : (
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-6">
                 {(jobsQuery.data?.jobs ?? []).map((job, idx) => {
                   const baseCron = job.schedule?.cron ?? job.defaultScheduleCron ?? '';
                   const baseEnabled = job.schedule?.enabled ?? false;
-                  const baseTz = job.schedule?.timezone ?? '';
 
                   const draft =
                     drafts[job.id] ??
                     defaultDraftFromCron({
                       cron: baseCron,
                       enabled: baseEnabled,
-                      timezone: job.schedule?.timezone ?? null,
                     });
 
                   const computedCron = buildCronFromDraft(draft);
                   const isDirty =
                     (computedCron ? computedCron !== baseCron : false) ||
-                    draft.enabled !== baseEnabled ||
-                    draft.timezone !== baseTz;
+                    draft.enabled !== baseEnabled;
 
                   const scheduleEnabled = job.schedule?.enabled ?? false;
                   const nextRunAt = job.schedule?.nextRunAt ?? null;
@@ -302,13 +294,6 @@ export function JobsPage() {
                         </div>
 
                         <div className="flex items-center gap-3 shrink-0">
-                          {job.id === 'monitorConfirm' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-200 border border-emerald-500/20">
-                              <Shield className="h-3.5 w-3.5" />
-                              MVP
-                            </span>
-                          ) : null}
-
                           <button
                             type="button"
                             role="switch"
@@ -328,16 +313,16 @@ export function JobsPage() {
                       </div>
 
                       {/* Schedule */}
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-semibold text-white/85">Schedule</div>
-                          <div className="text-xs text-white/55">
-                            {draft.enabled ? 'Enabled' : 'Disabled'}
-                            {isDirty ? ' · Unsaved changes' : ''}
+                      {draft.enabled && (
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="text-sm font-semibold text-white/85">Schedule</div>
+                            <div className="text-xs text-white/55">
+                              Enabled
+                              {isDirty ? ' · Unsaved changes' : ''}
+                            </div>
                           </div>
-                        </div>
 
-                        {draft.enabled ? (
                           <div className="mt-4 space-y-4">
                             <div>
                               <div className={labelClass}>Repeat</div>
@@ -437,18 +422,6 @@ export function JobsPage() {
                             </div>
 
                             <div>
-                              <label className={labelClass}>Timezone (optional)</label>
-                              <input
-                                value={draft.timezone}
-                                onChange={(e) =>
-                                  setDrafts((prev) => ({
-                                    ...prev,
-                                    [job.id]: { ...draft, timezone: e.target.value },
-                                  }))
-                                }
-                                placeholder="e.g. America/New_York"
-                                className={inputClass}
-                              />
                               <div className="mt-2 text-xs text-white/55">
                                 Next run:{' '}
                                 {scheduleEnabled && nextRunAt
@@ -464,70 +437,62 @@ export function JobsPage() {
                               ) : null}
                             </div>
                           </div>
-                        ) : (
-                          <div className="mt-3 text-sm text-white/60">
-                            Disabled. Enable to configure automatic runs.
-                          </div>
-                        )}
 
-                        <div className="mt-4 flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cron = buildCronFromDraft(draft);
-                              if (!cron) return;
-                              scheduleMutation.mutate({
-                                jobId: job.id,
-                                cron,
-                                enabled: draft.enabled,
-                                timezone: draft.timezone.trim()
-                                  ? draft.timezone.trim()
-                                  : null,
-                              });
-                            }}
-                            disabled={!computedCron || isSavingSchedule || !isDirty}
-                            className={secondaryButtonClass}
-                          >
-                            {isSavingSchedule ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Saving…
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-4 w-4" />
-                                Save schedule
-                              </>
-                            )}
-                          </button>
-
-                          {isDirty ? (
+                          <div className="mt-4 flex flex-wrap items-center gap-2">
                             <button
                               type="button"
-                              onClick={() =>
-                                setDrafts((prev) => ({
-                                  ...prev,
-                                  [job.id]: defaultDraftFromCron({
-                                    cron: baseCron,
-                                    enabled: baseEnabled,
-                                    timezone: baseTz || null,
-                                  }),
-                                }))
-                              }
-                              disabled={isSavingSchedule}
-                              className={ghostButtonClass}
+                              onClick={() => {
+                                const cron = buildCronFromDraft(draft);
+                                if (!cron) return;
+                                scheduleMutation.mutate({
+                                  jobId: job.id,
+                                  cron,
+                                  enabled: draft.enabled,
+                                });
+                              }}
+                              disabled={!computedCron || isSavingSchedule || !isDirty}
+                              className={secondaryButtonClass}
                             >
-                              Reset
+                              {isSavingSchedule ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Saving…
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4" />
+                                  Save schedule
+                                </>
+                              )}
                             </button>
+
+                            {isDirty ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDrafts((prev) => ({
+                                    ...prev,
+                                    [job.id]: defaultDraftFromCron({
+                                      cron: baseCron,
+                                      enabled: baseEnabled,
+                                    }),
+                                  }))
+                                }
+                                disabled={isSavingSchedule}
+                                className={ghostButtonClass}
+                              >
+                                Reset
+                              </button>
+                            ) : null}
+                          </div>
+
+                          {scheduleError ? (
+                            <div className="mt-4 rounded-2xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-200">
+                              {scheduleError}
+                            </div>
                           ) : null}
                         </div>
-
-                        {scheduleError ? (
-                          <div className="mt-4 rounded-2xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-200">
-                            {scheduleError}
-                          </div>
-                        ) : null}
-                      </div>
+                      )}
 
                       {/* Run controls */}
                       <div className="mt-5 pt-5 border-t border-white/10 flex flex-wrap items-center gap-2">

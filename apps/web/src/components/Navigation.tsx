@@ -15,7 +15,6 @@ const navItems: NavItem[] = [
     label: 'Overview',
     dropdown: [
       { label: 'Dashboard', to: '/' },
-      { label: 'Collections', to: '/collections' },
     ],
   },
   {
@@ -171,9 +170,12 @@ export function Navigation() {
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
                   >
-                    <button className="relative px-5 py-2.5 text-sm text-white/90 hover:text-white active:text-white transition-all duration-300 rounded-2xl overflow-hidden group active:scale-[0.98]">
+                    <button className="relative px-5 py-2.5 text-sm text-white/90 hover:text-white active:text-white transition-all duration-300 rounded-2xl overflow-hidden group active:scale-[0.98] outline-none focus-visible:outline-none">
                       {/* Glassy button background */}
-                      <div className="absolute inset-0 bg-white/8 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl border border-white/15" />
+                      <div className="absolute inset-0 bg-white/8 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                      {/* Modern diffused glow effect on hover */}
+                      <div className="absolute -inset-1 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl blur-xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10" />
+                      <div className="absolute -inset-2 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5" />
                       <span className="relative z-10">{item.label}</span>
                     </button>
 
@@ -191,13 +193,15 @@ export function Navigation() {
                             {item.dropdown.map((subItem, subIndex) => (
                               <button
                                 key={subIndex}
-                                className="w-full text-left px-4 py-3 text-sm text-white/90 rounded-xl transition-all duration-200 hover:bg-white/10 active:bg-white/12 active:scale-[0.99]"
+                                className="relative w-full text-left px-4 py-3 text-sm text-white/90 rounded-xl transition-all duration-200 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] outline-none focus-visible:outline-none"
                                 onClick={() => {
                                   setHoveredIndex(null);
                                   navigate(subItem.to);
                                 }}
                               >
-                                {subItem.label}
+                                <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                                <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                                <span className="relative z-10">{subItem.label}</span>
                               </button>
                             ))}
                           </div>
@@ -237,19 +241,23 @@ export function Navigation() {
                   <motion.button
                     animate={{ x: isSearchOpen ? 0 : 0 }}
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="p-2.5 text-white/80 hover:text-white transition-all duration-300 rounded-full hover:bg-white/10 active:bg-white/15 active:scale-95 backdrop-blur-sm relative z-10"
+                    className="relative p-2.5 text-white/80 hover:text-white transition-all duration-300 rounded-full hover:bg-white/10 active:bg-white/15 active:scale-95 backdrop-blur-sm z-10 outline-none focus-visible:outline-none"
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
                   >
-                    <Search size={20} />
+                    <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
+                    <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                    <span className="relative z-10"><Search size={20} /></span>
                   </motion.button>
                 </div>
 
                 <div className="relative">
                   <button
                     onClick={() => setIsHelpOpen(!isHelpOpen)}
-                    className="px-5 py-2.5 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 active:scale-[0.98] backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20"
+                    className="relative px-5 py-2.5 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 active:scale-[0.98] backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 outline-none focus-visible:outline-none"
                   >
-                    Help
+                    <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
+                    <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                    <span className="relative z-10">Help</span>
                   </button>
 
                   {/* Help Card */}
@@ -272,9 +280,11 @@ export function Navigation() {
                             <button
                               onClick={handleResetAccount}
                               disabled={logoutMutation.isPending}
-                              className="w-full px-4 py-2.5 text-left text-sm text-orange-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all font-medium disabled:opacity-50"
+                              className="relative w-full px-4 py-2.5 text-left text-sm text-orange-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all font-medium disabled:opacity-50 outline-none focus-visible:outline-none"
                             >
-                              Reset Account to Fresh Setup
+                              <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                              <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                              <span className="relative z-10">Reset Account to Fresh Setup</span>
                             </button>
                           </div>
 
@@ -282,10 +292,14 @@ export function Navigation() {
                             <button
                               onClick={handleLogout}
                               disabled={logoutMutation.isPending}
-                              className="w-full px-4 py-2.5 text-left text-sm text-red-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all flex items-center gap-2 font-medium disabled:opacity-50"
+                              className="relative w-full px-4 py-2.5 text-left text-sm text-red-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all flex items-center gap-2 font-medium disabled:opacity-50 outline-none focus-visible:outline-none"
                             >
-                              <LogOut size={16} />
-                              {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                              <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                              <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                              <span className="relative z-10 flex items-center gap-2">
+                                <LogOut size={16} />
+                                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                              </span>
                             </button>
                           </div>
                         </div>

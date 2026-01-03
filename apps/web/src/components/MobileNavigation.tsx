@@ -17,7 +17,6 @@ const navItems: NavItem[] = [
     label: 'Overview',
     dropdown: [
       { label: 'Dashboard', to: '/' },
-      { label: 'Collections', to: '/collections' },
     ],
   },
   {
@@ -128,13 +127,15 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                 {navItems[selectedIndex].dropdown!.map((item, idx) => (
                   <button
                     key={idx}
-                    className="rounded-2xl px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/10 active:bg-white/12 active:scale-[0.99]"
+                    className="relative rounded-2xl px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] outline-none focus-visible:outline-none"
                     onClick={() => {
                       setSelectedIndex(null);
                       navigate(item.to);
                     }}
                   >
-                    {item.label}
+                    <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-2xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                    <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-2xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                    <span className="relative z-10">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -222,9 +223,11 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                     buttonRefs.current[index] = el;
                   }}
                   onClick={() => handleButtonClick(index)}
-                  className="relative z-20 rounded-full px-4 py-2.5 text-xs font-medium text-white/70 transition-all duration-200 hover:text-white active:bg-white/10 active:text-white active:scale-[0.98]"
+                  className="relative z-20 rounded-full px-4 py-2.5 text-xs font-medium text-white/70 transition-all duration-200 hover:text-white active:bg-white/10 active:text-white active:scale-[0.98] outline-none focus-visible:outline-none"
                 >
-                  <span className={selectedIndex === index ? 'text-white' : ''}>{item.label}</span>
+                  <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
+                  <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                  <span className={`relative z-10 ${selectedIndex === index ? 'text-white' : ''}`}>{item.label}</span>
                 </button>
               ))}
             </div>
@@ -294,10 +297,12 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                     setIsHelpOpen(false);
                     setIsSearchOpen(true);
                   }}
-                  className="rounded-full p-2 text-white/80 transition-all hover:bg-white/10 hover:text-white active:bg-white/15 active:scale-95"
+                  className="relative rounded-full p-2 text-white/80 transition-all hover:bg-white/10 hover:text-white active:bg-white/15 active:scale-95 outline-none focus-visible:outline-none"
                   aria-label="Search"
                 >
-                  <Search size={20} />
+                  <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
+                  <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                  <span className="relative z-10"><Search size={20} /></span>
                 </button>
               )}
             </div>
@@ -309,9 +314,11 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                 setIsSearchOpen(false);
                 setIsHelpOpen((v) => !v);
               }}
-              className="px-4 py-2 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 active:scale-95"
+              className="relative px-4 py-2 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 active:scale-95 outline-none focus-visible:outline-none"
             >
-              Help
+              <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-xl bg-gradient-to-br from-violet-500/25 via-purple-500/20 to-fuchsia-500/15 -z-10" />
+              <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300 rounded-full blur-2xl bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+              <span className="relative z-10">Help</span>
             </button>
           </div>
         </div>
@@ -348,9 +355,11 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                   <div className="space-y-2">
                     <button
                       onClick={handleResetAccount}
-                      className="w-full px-4 py-2.5 text-left text-sm text-orange-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all font-medium"
+                      className="relative w-full px-4 py-2.5 text-left text-sm text-orange-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all font-medium outline-none focus-visible:outline-none"
                     >
-                      Reset Account to Fresh Setup
+                      <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                      <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                      <span className="relative z-10">Reset Account to Fresh Setup</span>
                     </button>
                   </div>
 
@@ -360,10 +369,14 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                         setIsHelpOpen(false);
                         onLogout();
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-red-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all flex items-center gap-2 font-medium"
+                      className="relative w-full px-4 py-2.5 text-left text-sm text-red-300 hover:bg-white/10 active:bg-white/12 active:scale-[0.99] rounded-xl transition-all flex items-center gap-2 font-medium outline-none focus-visible:outline-none"
                     >
-                      <LogOut size={16} />
-                      Logout
+                      <div className="absolute -inset-1 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-lg bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/10 -z-10" />
+                      <div className="absolute -inset-2 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-200 rounded-xl blur-2xl bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-fuchsia-500/5 -z-10" />
+                      <span className="relative z-10 flex items-center gap-2">
+                        <LogOut size={16} />
+                        Logout
+                      </span>
                     </button>
                   </div>
                 </div>
