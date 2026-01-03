@@ -222,7 +222,7 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                     buttonRefs.current[index] = el;
                   }}
                   onClick={() => handleButtonClick(index)}
-                  className="relative z-20 rounded-full px-4 py-2.5 text-xs font-medium text-white/70 transition-all duration-200 hover:text-white active:bg-white/10 active:text-white active:scale-[0.98]"
+                  className="relative z-20 rounded-full px-4 py-2.5 text-xs font-medium text-white/70 transition-all duration-200 hover:text-white active:bg-white/10 active:text-white active:scale-[0.98] hover:shadow-[0_0_20px_rgba(250,204,21,0.3),0_0_40px_rgba(250,204,21,0.15)] active:shadow-[0_0_15px_rgba(250,204,21,0.4),0_0_30px_rgba(250,204,21,0.2)]"
                 >
                   <span className={selectedIndex === index ? 'text-white' : ''}>{item.label}</span>
                 </button>
@@ -294,7 +294,7 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                     setIsHelpOpen(false);
                     setIsSearchOpen(true);
                   }}
-                  className="rounded-full p-2 text-white/80 transition-all hover:bg-white/10 hover:text-white active:bg-white/15 active:scale-95"
+                  className="rounded-full p-2 text-white/80 transition-all hover:bg-white/10 hover:text-white active:bg-white/15 active:scale-95 hover:shadow-[0_0_20px_rgba(250,204,21,0.3),0_0_40px_rgba(250,204,21,0.15)] active:shadow-[0_0_15px_rgba(250,204,21,0.4),0_0_30px_rgba(250,204,21,0.2)]"
                   aria-label="Search"
                 >
                   <Search size={20} />
@@ -309,7 +309,7 @@ export function MobileNavigation({ onLogout }: MobileNavigationProps) {
                 setIsSearchOpen(false);
                 setIsHelpOpen((v) => !v);
               }}
-              className="px-4 py-2 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 active:scale-95"
+              className="px-4 py-2 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 active:scale-95 hover:shadow-[0_0_20px_rgba(250,204,21,0.3),0_0_40px_rgba(250,204,21,0.15)] active:shadow-[0_0_15px_rgba(250,204,21,0.4),0_0_30px_rgba(250,204,21,0.2)]"
             >
               Help
             </button>

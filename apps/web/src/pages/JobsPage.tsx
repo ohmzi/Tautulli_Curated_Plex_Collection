@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CircleAlert, Loader2, Play, Save, Shield } from 'lucide-react';
+import { CircleAlert, Loader2, Play, Save } from 'lucide-react';
 
 import { listJobs, runJob, updateJobSchedule } from '@/api/jobs';
 // (status pill lives on History/Detail pages now)
@@ -247,25 +247,23 @@ export function JobsPage() {
                 </div>
               </div>
             ) : (
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-6 grid-cols-1">
                 {(jobsQuery.data?.jobs ?? []).map((job, idx) => {
                   const baseCron = job.schedule?.cron ?? job.defaultScheduleCron ?? '';
                   const baseEnabled = job.schedule?.enabled ?? false;
-                  const baseTz = job.schedule?.timezone ?? '';
 
                   const draft =
                     drafts[job.id] ??
                     defaultDraftFromCron({
                       cron: baseCron,
                       enabled: baseEnabled,
-                      timezone: job.schedule?.timezone ?? null,
+                      timezone: null,
                     });
 
                   const computedCron = buildCronFromDraft(draft);
                   const isDirty =
                     (computedCron ? computedCron !== baseCron : false) ||
-                    draft.enabled !== baseEnabled ||
-                    draft.timezone !== baseTz;
+                    draft.enabled !== baseEnabled;
 
                   const scheduleEnabled = job.schedule?.enabled ?? false;
                   const nextRunAt = job.schedule?.nextRunAt ?? null;
@@ -285,6 +283,8 @@ export function JobsPage() {
                       ? (runMutation.error as Error).message
                       : null;
 
+                  const isMonitorConfirm = job.id === 'monitorConfirm';
+
                   return (
                     <motion.div
                       key={job.id}
@@ -293,52 +293,97 @@ export function JobsPage() {
                       transition={{ duration: 0.55, delay: Math.min(0.25, idx * 0.05) }}
                       className={cardClass}
                     >
-                      <div className={cardHeaderClass}>
-                        <div className="min-w-0">
-                          <h2 className={cardTitleClass}>{job.name}</h2>
-                          <p className="mt-2 text-sm text-white/70">
-                            {job.description}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                          {job.id === 'monitorConfirm' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-200 border border-emerald-500/20">
-                              <Shield className="h-3.5 w-3.5" />
-                              MVP
-                            </span>
-                          ) : null}
-
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={draft.enabled}
-                            onClick={() =>
-                              setDrafts((prev) => ({
-                                ...prev,
-                                [job.id]: { ...draft, enabled: !draft.enabled },
-                              }))
-                            }
-                            className={toggleTrackClass(draft.enabled)}
-                            aria-label={`Toggle schedule for ${job.name}`}
-                          >
-                            <span className={toggleThumbClass(draft.enabled)} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Schedule */}
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-semibold text-white/85">Schedule</div>
-                          <div className="text-xs text-white/55">
-                            {draft.enabled ? 'Enabled' : 'Disabled'}
-                            {isDirty ? ' · Unsaved changes' : ''}
+                      {isMonitorConfirm ? (
+                        <div className="mb-6">
+                          <div className="flex items-start justify-between gap-6 mb-4">
+                            <div className="min-w-0 flex-1">
+                              <h2 className="text-3xl font-bold text-white mb-3">
+                                {job.name}
+                              </h2>
+                              <p className="text-base text-white/80 leading-relaxed mb-4">
+                                {job.description}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <span className="inline-flex items-center rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-200 border border-emerald-500/20">
+                                  Radarr & Sonarr
+                                </span>
+                                <span className="inline-flex items-center rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-200 border border-blue-500/20">
+                                  Plex Integration
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <div className="text-right">
+                                <div className="text-xs font-medium text-white/60 mb-1">Schedule</div>
+                                <div className="text-sm font-semibold text-white">
+                                  {draft.enabled ? 'Enabled' : 'Disabled'}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={draft.enabled}
+                                onClick={() =>
+                                  setDrafts((prev) => ({
+                                    ...prev,
+                                    [job.id]: { ...draft, enabled: !draft.enabled },
+                                  }))
+                                }
+                                className={toggleTrackClass(draft.enabled)}
+                                aria-label={`Toggle schedule for ${job.name}`}
+                              >
+                                <span className={toggleThumbClass(draft.enabled)} />
+                              </button>
+                            </div>
                           </div>
                         </div>
+                      ) : (
+                        <div className={cardHeaderClass}>
+                          <div className="min-w-0">
+                            <h2 className={cardTitleClass}>{job.name}</h2>
+                            <p className="mt-2 text-sm text-white/70">
+                              {job.description}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={draft.enabled}
+                              onClick={() =>
+                                setDrafts((prev) => ({
+                                  ...prev,
+                                  [job.id]: { ...draft, enabled: !draft.enabled },
+                                }))
+                              }
+                              className={toggleTrackClass(draft.enabled)}
+                              aria-label={`Toggle schedule for ${job.name}`}
+                            >
+                              <span className={toggleThumbClass(draft.enabled)} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
-                        {draft.enabled ? (
-                          <div className="mt-4 space-y-4">
+                      {/* Schedule */}
+                      {draft.enabled ? (
+                        <div className={`rounded-2xl border border-white/10 bg-white/5 backdrop-blur ${isMonitorConfirm ? 'p-6 mt-6' : 'p-4 mt-5'}`}>
+                          <div className="flex items-center justify-between gap-3 mb-4">
+                            <div className={`font-semibold text-white/85 ${isMonitorConfirm ? 'text-base' : 'text-sm'}`}>
+                              Schedule Configuration
+                            </div>
+                            <div className="text-xs text-white/55">
+                              {isDirty ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-yellow-400/15 px-2 py-1 text-yellow-200 border border-yellow-400/20">
+                                  Unsaved changes
+                                </span>
+                              ) : (
+                                <span className="text-white/40">Saved</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
                             <div>
                               <div className={labelClass}>Repeat</div>
                               <div className="inline-flex w-fit rounded-full border border-white/15 bg-white/10 p-1 backdrop-blur">
@@ -437,18 +482,6 @@ export function JobsPage() {
                             </div>
 
                             <div>
-                              <label className={labelClass}>Timezone (optional)</label>
-                              <input
-                                value={draft.timezone}
-                                onChange={(e) =>
-                                  setDrafts((prev) => ({
-                                    ...prev,
-                                    [job.id]: { ...draft, timezone: e.target.value },
-                                  }))
-                                }
-                                placeholder="e.g. America/New_York"
-                                className={inputClass}
-                              />
                               <div className="mt-2 text-xs text-white/55">
                                 Next run:{' '}
                                 {scheduleEnabled && nextRunAt
@@ -464,102 +497,103 @@ export function JobsPage() {
                               ) : null}
                             </div>
                           </div>
-                        ) : (
-                          <div className="mt-3 text-sm text-white/60">
-                            Disabled. Enable to configure automatic runs.
-                          </div>
-                        )}
 
-                        <div className="mt-4 flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cron = buildCronFromDraft(draft);
-                              if (!cron) return;
-                              scheduleMutation.mutate({
-                                jobId: job.id,
-                                cron,
-                                enabled: draft.enabled,
-                                timezone: draft.timezone.trim()
-                                  ? draft.timezone.trim()
-                                  : null,
-                              });
-                            }}
-                            disabled={!computedCron || isSavingSchedule || !isDirty}
-                            className={secondaryButtonClass}
-                          >
-                            {isSavingSchedule ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Saving…
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-4 w-4" />
-                                Save schedule
-                              </>
-                            )}
-                          </button>
-
-                          {isDirty ? (
+                          <div className="flex flex-wrap items-center gap-2 mt-4">
                             <button
                               type="button"
-                              onClick={() =>
-                                setDrafts((prev) => ({
-                                  ...prev,
-                                  [job.id]: defaultDraftFromCron({
-                                    cron: baseCron,
-                                    enabled: baseEnabled,
-                                    timezone: baseTz || null,
-                                  }),
-                                }))
-                              }
-                              disabled={isSavingSchedule}
-                              className={ghostButtonClass}
+                              onClick={() => {
+                                const cron = buildCronFromDraft(draft);
+                                if (!cron) return;
+                                scheduleMutation.mutate({
+                                  jobId: job.id,
+                                  cron,
+                                  enabled: draft.enabled,
+                                  timezone: null,
+                                });
+                              }}
+                              disabled={!computedCron || isSavingSchedule || !isDirty}
+                              className={isMonitorConfirm ? `${secondaryButtonClass} px-6` : secondaryButtonClass}
                             >
-                              Reset
+                              {isSavingSchedule ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Saving…
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4" />
+                                  Save schedule
+                                </>
+                              )}
                             </button>
+
+                            {isDirty ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDrafts((prev) => ({
+                                    ...prev,
+                                    [job.id]: defaultDraftFromCron({
+                                      cron: baseCron,
+                                      enabled: baseEnabled,
+                                      timezone: null,
+                                    }),
+                                  }))
+                                }
+                                disabled={isSavingSchedule}
+                                className={ghostButtonClass}
+                              >
+                                Reset
+                              </button>
+                            ) : null}
+                          </div>
+
+                          {scheduleError ? (
+                            <div className="mt-4 rounded-2xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-200">
+                              {scheduleError}
+                            </div>
                           ) : null}
                         </div>
-
-                        {scheduleError ? (
-                          <div className="mt-4 rounded-2xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-200">
-                            {scheduleError}
-                          </div>
-                        ) : null}
-                      </div>
+                      ) : null}
 
                       {/* Run controls */}
-                      <div className="mt-5 pt-5 border-t border-white/10 flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            runMutation.mutate({ jobId: job.id, dryRun: true })
-                          }
-                          disabled={runMutation.isPending}
-                          className={secondaryButtonClass}
-                        >
-                          <Play className="h-4 w-4" />
-                          Dry-run
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            runMutation.mutate({ jobId: job.id, dryRun: false })
-                          }
-                          disabled={runMutation.isPending}
-                          className={primaryButtonClass}
-                        >
-                          <Play className="h-4 w-4" />
-                          Run
-                        </button>
-
-                        {isRunningJob ? (
-                          <div className="text-sm text-white/60 flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Starting…
+                      <div className={`pt-5 border-t border-white/10 ${isMonitorConfirm ? 'mt-6' : 'mt-5'}`}>
+                        {isMonitorConfirm && (
+                          <div className="mb-4">
+                            <div className="text-sm font-semibold text-white/85">Manual Run</div>
                           </div>
-                        ) : null}
+                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              runMutation.mutate({ jobId: job.id, dryRun: true })
+                            }
+                            disabled={runMutation.isPending}
+                            className={isMonitorConfirm ? `${secondaryButtonClass} px-6` : secondaryButtonClass}
+                          >
+                            <Play className="h-4 w-4" />
+                            Dry-run
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              runMutation.mutate({ jobId: job.id, dryRun: false })
+                            }
+                            disabled={runMutation.isPending}
+                            className={isMonitorConfirm ? `${primaryButtonClass} px-6` : primaryButtonClass}
+                          >
+                            <Play className="h-4 w-4" />
+                            Run
+                          </button>
+
+                          {isRunningJob ? (
+                            <div className="text-sm text-white/60 flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Starting…
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
 
                       {runError ? (

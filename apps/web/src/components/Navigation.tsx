@@ -171,7 +171,7 @@ export function Navigation() {
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
                   >
-                    <button className="relative px-5 py-2.5 text-sm text-white/90 hover:text-white active:text-white transition-all duration-300 rounded-2xl overflow-hidden group active:scale-[0.98]">
+                    <button className="relative px-5 py-2.5 text-sm text-white/90 hover:text-white active:text-white transition-all duration-300 rounded-2xl overflow-hidden group active:scale-[0.98] hover:shadow-[0_0_20px_rgba(250,204,21,0.3),0_0_40px_rgba(250,204,21,0.15)] active:shadow-[0_0_15px_rgba(250,204,21,0.4),0_0_30px_rgba(250,204,21,0.2)]">
                       {/* Glassy button background */}
                       <div className="absolute inset-0 bg-white/8 backdrop-blur-sm opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 rounded-2xl border border-white/15" />
                       <span className="relative z-10">{item.label}</span>
@@ -237,7 +237,7 @@ export function Navigation() {
                   <motion.button
                     animate={{ x: isSearchOpen ? 0 : 0 }}
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="p-2.5 text-white/80 hover:text-white transition-all duration-300 rounded-full hover:bg-white/10 active:bg-white/15 active:scale-95 backdrop-blur-sm relative z-10"
+                    className="p-2.5 text-white/80 hover:text-white transition-all duration-300 rounded-full hover:bg-white/10 active:bg-white/15 active:scale-95 backdrop-blur-sm relative z-10 hover:shadow-[0_0_20px_rgba(250,204,21,0.3),0_0_40px_rgba(250,204,21,0.15)] active:shadow-[0_0_15px_rgba(250,204,21,0.4),0_0_30px_rgba(250,204,21,0.2)]"
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
                   >
                     <Search size={20} />
@@ -247,7 +247,7 @@ export function Navigation() {
                 <div className="relative">
                   <button
                     onClick={() => setIsHelpOpen(!isHelpOpen)}
-                    className="px-5 py-2.5 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 active:scale-[0.98] backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20"
+                    className="px-5 py-2.5 text-sm text-white bg-white/10 hover:bg-white/15 active:bg-white/20 active:scale-[0.98] backdrop-blur-sm rounded-full transition-all duration-300 border border-white/20 hover:shadow-[0_0_20px_rgba(250,204,21,0.3),0_0_40px_rgba(250,204,21,0.15)] active:shadow-[0_0_15px_rgba(250,204,21,0.4),0_0_30px_rgba(250,204,21,0.2)]"
                   >
                     Help
                   </button>

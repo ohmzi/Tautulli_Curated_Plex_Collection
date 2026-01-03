@@ -129,4 +129,3 @@ model CuratedCollectionItem {
   @@index([collectionId])
 }
 
-

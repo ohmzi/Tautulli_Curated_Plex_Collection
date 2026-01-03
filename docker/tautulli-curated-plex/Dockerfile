@@ -38,4 +38,3 @@ EXPOSE 3210
 
 CMD ["sh", "-c", "npm -w apps/api run db:migrate && node apps/api/dist/main.js"]
 
-

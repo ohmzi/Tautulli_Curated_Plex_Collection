@@ -39,4 +39,3 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit)
   return (await res.json()) as T;
 }
 
-
